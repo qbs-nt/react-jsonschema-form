@@ -123,7 +123,7 @@ function unwrapErrorHandler(errorHandler) {
  * Transforming the error output from ajv to format used by jsonschema.
  * At some point, components should be updated to support ajv.
  */
-function transformAjvErrors(errors = []) {
+export function transformAjvErrors(errors = []) {
   if (errors === null) {
     return [];
   }
@@ -139,6 +139,7 @@ function transformAjvErrors(errors = []) {
       message,
       params, // specific to ajv
       stack: `${property} ${message}`.trim(),
+      rawError: e,
     };
   });
 }
@@ -164,7 +165,7 @@ export default function validateFormData(
   let errors = transformAjvErrors(ajv.errors);
 
   if (typeof transformErrors === "function") {
-    errors = transformErrors(errors);
+    errors = transformErrors(errors, ajv);
   }
   const errorSchema = toErrorSchema(errors);
 
