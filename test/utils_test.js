@@ -21,12 +21,15 @@ import {
   guessType,
 } from "../src/utils";
 
+import { getGlobalAjv } from "./test_utils";
+const globalAjv = getGlobalAjv();
+
 describe("utils", () => {
   describe("getDefaultFormState()", () => {
     describe("root default", () => {
       it("should map root schema default to form state, if any", () => {
         expect(
-          getDefaultFormState({
+          getDefaultFormState(globalAjv, {
             type: "string",
             default: "foo",
           })
@@ -37,7 +40,7 @@ describe("utils", () => {
     describe("nested default", () => {
       it("should map schema object prop default to form state", () => {
         expect(
-          getDefaultFormState({
+          getDefaultFormState(globalAjv, {
             type: "object",
             properties: {
               string: {
@@ -51,7 +54,7 @@ describe("utils", () => {
 
       it("should default to empty object if no properties are defined", () => {
         expect(
-          getDefaultFormState({
+          getDefaultFormState(globalAjv, {
             type: "object",
           })
         ).to.eql({});
@@ -59,7 +62,7 @@ describe("utils", () => {
 
       it("should recursively map schema object default to form state", () => {
         expect(
-          getDefaultFormState({
+          getDefaultFormState(globalAjv, {
             type: "object",
             properties: {
               object: {
@@ -78,7 +81,7 @@ describe("utils", () => {
 
       it("should map schema array default to form state", () => {
         expect(
-          getDefaultFormState({
+          getDefaultFormState(globalAjv, {
             type: "object",
             properties: {
               array: {
@@ -95,7 +98,7 @@ describe("utils", () => {
 
       it("should recursively map schema array default to form state", () => {
         expect(
-          getDefaultFormState({
+          getDefaultFormState(globalAjv, {
             type: "object",
             properties: {
               object: {
@@ -137,7 +140,7 @@ describe("utils", () => {
             },
           },
         };
-        expect(getDefaultFormState(schema, {})).eql({
+        expect(getDefaultFormState(globalAjv, schema, {})).eql({
           object: { array: ["foo", "bar"], bool: true },
         });
       });
@@ -176,7 +179,7 @@ describe("utils", () => {
           },
         };
         expect(
-          getDefaultFormState(schema, {
+          getDefaultFormState(globalAjv, schema, {
             level1: { level2: { leaf4: 4 } },
           })
         ).eql({
@@ -216,7 +219,7 @@ describe("utils", () => {
             },
           },
         };
-        expect(getDefaultFormState(schema, formData)).eql({
+        expect(getDefaultFormState(globalAjv, schema, formData)).eql({
           level1: { level2: { leaf1: "a" } },
         });
       });
@@ -232,7 +235,7 @@ describe("utils", () => {
             },
           },
         };
-        expect(getDefaultFormState(schema, {})).eql({
+        expect(getDefaultFormState(globalAjv, schema, {})).eql({
           level1: [1, 2, 3],
         });
       });
@@ -248,7 +251,7 @@ describe("utils", () => {
             },
           },
         };
-        expect(getDefaultFormState(schema, {})).eql({
+        expect(getDefaultFormState(globalAjv, schema, {})).eql({
           level1: [1, 2, 3],
         });
       });
@@ -271,7 +274,7 @@ describe("utils", () => {
             },
           },
         };
-        expect(getDefaultFormState(schema, {})).eql({
+        expect(getDefaultFormState(globalAjv, schema, {})).eql({
           array: ["foo", undefined],
         });
       });
@@ -290,7 +293,7 @@ describe("utils", () => {
           default: { foo: 42 },
         };
 
-        expect(getDefaultFormState(schema, undefined, schema.definitions)).eql({
+        expect(getDefaultFormState(globalAjv, schema, undefined, schema.definitions)).eql({
           foo: 42,
         });
       });
@@ -310,7 +313,7 @@ describe("utils", () => {
             },
           },
         };
-        expect(getDefaultFormState(schema, {})).eql({
+        expect(getDefaultFormState(globalAjv, schema, {})).eql({
           array: ["foo"],
         });
       });
@@ -426,13 +429,13 @@ describe("utils", () => {
             items: { enum: ["foo", "bar"] },
             uniqueItems: true,
           };
-          expect(isMultiSelect(schema)).to.be.true;
+          expect(isMultiSelect(globalAjv, schema)).to.be.true;
         });
       });
 
       it("should be false if items is undefined", () => {
         const schema = {};
-        expect(isMultiSelect(schema)).to.be.false;
+        expect(isMultiSelect(globalAjv, schema)).to.be.false;
       });
 
       describe("schema items enum is not an array", () => {
@@ -441,7 +444,7 @@ describe("utils", () => {
 
         it("should be false if oneOf/anyOf is not in items schema", () => {
           const schema = { items: {}, uniqueItems: true };
-          expect(isMultiSelect(schema)).to.be.false;
+          expect(isMultiSelect(globalAjv, schema)).to.be.false;
         });
 
         it("should be false if oneOf/anyOf schemas are not all constants", () => {
@@ -449,7 +452,7 @@ describe("utils", () => {
             items: { oneOf: [constantSchema, notConstantSchema] },
             uniqueItems: true,
           };
-          expect(isMultiSelect(schema)).to.be.false;
+          expect(isMultiSelect(globalAjv, schema)).to.be.false;
         });
 
         it("should be true if oneOf/anyOf schemas are all constants", () => {
@@ -457,7 +460,7 @@ describe("utils", () => {
             items: { oneOf: [constantSchema, constantSchema] },
             uniqueItems: true,
           };
-          expect(isMultiSelect(schema)).to.be.true;
+          expect(isMultiSelect(globalAjv, schema)).to.be.true;
         });
       });
 
@@ -469,7 +472,7 @@ describe("utils", () => {
         const definitions = {
           FooItem: { type: "string", enum: ["foo"] },
         };
-        expect(isMultiSelect(schema, definitions)).to.be.true;
+        expect(isMultiSelect(globalAjv, schema, definitions)).to.be.true;
       });
     });
 
@@ -478,7 +481,7 @@ describe("utils", () => {
         items: { enum: ["foo", "bar"] },
         uniqueItems: false,
       };
-      expect(isMultiSelect(schema)).to.be.false;
+      expect(isMultiSelect(globalAjv, schema)).to.be.false;
     });
   });
 
@@ -486,13 +489,13 @@ describe("utils", () => {
     it("should be true if items have data-url format", () => {
       const schema = { items: { type: "string", format: "data-url" } };
       const uiSchema = {};
-      expect(isFilesArray(schema, uiSchema)).to.be.true;
+      expect(isFilesArray(globalAjv, schema, uiSchema)).to.be.true;
     });
 
     it("should be false if items is undefined", () => {
       const schema = {};
       const uiSchema = {};
-      expect(isFilesArray(schema, uiSchema)).to.be.false;
+      expect(isFilesArray(globalAjv, schema, uiSchema)).to.be.false;
     });
   });
 
@@ -600,7 +603,7 @@ describe("utils", () => {
       };
       const definitions = { address };
 
-      expect(retrieveSchema(schema, definitions)).eql(address);
+      expect(retrieveSchema(globalAjv, schema, definitions)).eql(address);
     });
 
     it("should 'resolve' escaped JSON Pointers", () => {
@@ -608,7 +611,7 @@ describe("utils", () => {
       const address = { type: "string" };
       const definitions = { "a~complex/name": address };
 
-      expect(retrieveSchema(schema, definitions)).eql(address);
+      expect(retrieveSchema(globalAjv, schema, definitions)).eql(address);
     });
 
     it("should priorize local definitions over foreign ones", () => {
@@ -622,7 +625,7 @@ describe("utils", () => {
       };
       const definitions = { address };
 
-      expect(retrieveSchema(schema, definitions)).eql({
+      expect(retrieveSchema(globalAjv, schema, definitions)).eql({
         ...address,
         title: "foo",
       });
@@ -644,7 +647,7 @@ describe("utils", () => {
           };
           const definitions = {};
           const formData = {};
-          expect(retrieveSchema(schema, definitions, formData)).eql({
+          expect(retrieveSchema(globalAjv, schema, definitions, formData)).eql({
             type: "object",
             properties: {
               a: { type: "string" },
@@ -670,7 +673,7 @@ describe("utils", () => {
             };
             const definitions = {};
             const formData = { a: "1" };
-            expect(retrieveSchema(schema, definitions, formData)).eql({
+            expect(retrieveSchema(globalAjv, schema, definitions, formData)).eql({
               type: "object",
               properties: {
                 a: { type: "string" },
@@ -696,7 +699,7 @@ describe("utils", () => {
             };
             const definitions = {};
             const formData = { a: "1" };
-            expect(retrieveSchema(schema, definitions, formData)).eql({
+            expect(retrieveSchema(globalAjv, schema, definitions, formData)).eql({
               type: "object",
               properties: {
                 a: { type: "string" },
@@ -728,7 +731,7 @@ describe("utils", () => {
             };
             const definitions = {};
             const formData = {};
-            expect(retrieveSchema(schema, definitions, formData)).eql({
+            expect(retrieveSchema(globalAjv, schema, definitions, formData)).eql({
               type: "object",
               properties: {
                 a: { type: "string" },
@@ -754,7 +757,7 @@ describe("utils", () => {
             };
             const definitions = {};
             const formData = { a: "1" };
-            expect(retrieveSchema(schema, definitions, formData)).eql({
+            expect(retrieveSchema(globalAjv, schema, definitions, formData)).eql({
               type: "object",
               properties: {
                 a: { type: "string" },
@@ -785,7 +788,7 @@ describe("utils", () => {
               },
             };
             const formData = { a: "1" };
-            expect(retrieveSchema(schema, definitions, formData)).eql({
+            expect(retrieveSchema(globalAjv, schema, definitions, formData)).eql({
               type: "object",
               properties: {
                 a: { type: "string" },
@@ -826,7 +829,7 @@ describe("utils", () => {
               },
             };
             const formData = { a: "typeB" };
-            expect(retrieveSchema(schema, definitions, formData)).eql({
+            expect(retrieveSchema(globalAjv, schema, definitions, formData)).eql({
               type: "object",
               properties: {
                 a: { enum: ["typeA", "typeB"] },
@@ -866,7 +869,7 @@ describe("utils", () => {
             };
             const definitions = {};
             const formData = {};
-            expect(retrieveSchema(schema, definitions, formData)).eql({
+            expect(retrieveSchema(globalAjv, schema, definitions, formData)).eql({
               type: "object",
               properties: {
                 a: { type: "string" },
@@ -903,7 +906,7 @@ describe("utils", () => {
             };
             const definitions = {};
             const formData = { a: "int" };
-            expect(retrieveSchema(schema, definitions, formData)).eql({
+            expect(retrieveSchema(globalAjv, schema, definitions, formData)).eql({
               type: "object",
               properties: {
                 a: { type: "string", enum: ["int", "bool"] },
@@ -939,7 +942,7 @@ describe("utils", () => {
             };
             const definitions = {};
             const formData = { a: "bool" };
-            expect(retrieveSchema(schema, definitions, formData)).eql({
+            expect(retrieveSchema(globalAjv, schema, definitions, formData)).eql({
               type: "object",
               properties: {
                 a: { type: "string", enum: ["int", "bool"] },
@@ -981,7 +984,7 @@ describe("utils", () => {
               },
             };
             const formData = { a: "bool" };
-            expect(retrieveSchema(schema, definitions, formData)).eql({
+            expect(retrieveSchema(globalAjv, schema, definitions, formData)).eql({
               type: "object",
               properties: {
                 a: { type: "string", enum: ["int", "bool"] },
@@ -1078,7 +1081,7 @@ describe("utils", () => {
     it("should return an idSchema for root field", () => {
       const schema = { type: "string" };
 
-      expect(toIdSchema(schema)).eql({ $id: "root" });
+      expect(toIdSchema(globalAjv, schema)).eql({ $id: "root" });
     });
 
     it("should return an idSchema for nested objects", () => {
@@ -1094,7 +1097,7 @@ describe("utils", () => {
         },
       };
 
-      expect(toIdSchema(schema)).eql({
+      expect(toIdSchema(globalAjv, schema)).eql({
         $id: "root",
         level1: {
           $id: "root_level1",
@@ -1124,7 +1127,7 @@ describe("utils", () => {
         },
       };
 
-      expect(toIdSchema(schema)).eql({
+      expect(toIdSchema(globalAjv, schema)).eql({
         $id: "root",
         level1a: {
           $id: "root_level1a",
@@ -1154,7 +1157,7 @@ describe("utils", () => {
           },
         },
       };
-      expect(toIdSchema(schema)).eql({
+      expect(toIdSchema(globalAjv, schema)).eql({
         $id: "root",
         metadata: {
           $id: "root_metadata",
@@ -1174,7 +1177,7 @@ describe("utils", () => {
         },
       };
 
-      expect(toIdSchema(schema)).eql({
+      expect(toIdSchema(globalAjv, schema)).eql({
         $id: "root",
         foo: { $id: "root_foo" },
       });
@@ -1194,7 +1197,7 @@ describe("utils", () => {
         $ref: "#/definitions/testdef",
       };
 
-      expect(toIdSchema(schema, undefined, schema.definitions)).eql({
+      expect(toIdSchema(globalAjv, schema, undefined, schema.definitions)).eql({
         $id: "root",
         foo: { $id: "root_foo" },
         bar: { $id: "root_bar" },
@@ -1219,7 +1222,7 @@ describe("utils", () => {
         foo: "test",
       };
 
-      expect(toIdSchema(schema, undefined, schema.definitions, formData)).eql({
+      expect(toIdSchema(globalAjv, schema, undefined, schema.definitions, formData)).eql({
         $id: "root",
         foo: { $id: "root_foo" },
         bar: { $id: "root_bar" },
@@ -1251,7 +1254,7 @@ describe("utils", () => {
         },
       };
 
-      expect(toIdSchema(schema, undefined, schema.definitions, formData)).eql({
+      expect(toIdSchema(globalAjv, schema, undefined, schema.definitions, formData)).eql({
         $id: "root",
         obj: {
           $id: "root_obj",
@@ -1278,7 +1281,7 @@ describe("utils", () => {
 
       const formData = {};
 
-      expect(toIdSchema(schema, undefined, schema.definitions, formData)).eql({
+      expect(toIdSchema(globalAjv, schema, undefined, schema.definitions, formData)).eql({
         $id: "root",
         foo: { $id: "root_foo" },
       });
@@ -1298,7 +1301,7 @@ describe("utils", () => {
         $ref: "#/definitions/testdef",
       };
 
-      expect(toIdSchema(schema, undefined, schema.definitions, {}, "rjsf")).eql(
+      expect(toIdSchema(globalAjv, schema, undefined, schema.definitions, {}, "rjsf")).eql(
         {
           $id: "rjsf",
           foo: { $id: "rjsf_foo" },
@@ -1316,7 +1319,7 @@ describe("utils", () => {
         },
       };
       const formData = null;
-      const result = toIdSchema(schema, null, {}, formData, "rjsf");
+      const result = toIdSchema(globalAjv, schema, null, {}, formData, "rjsf");
 
       expect(result).eql({
         $id: "rjsf",

@@ -6,6 +6,9 @@ import { Simulate } from "react-addons-test-utils";
 import validateFormData, { isValid, toErrorList } from "../src/validate";
 import { createFormComponent } from "./test_utils";
 
+import { getGlobalAjv } from "./test_utils";
+const globalAjv = getGlobalAjv();
+
 describe("Validation", () => {
   describe("validate.isValid()", () => {
     it("should return true if the data is valid against the schema", () => {
@@ -16,7 +19,7 @@ describe("Validation", () => {
         },
       };
 
-      expect(isValid(schema, { foo: "bar" })).to.be.true;
+      expect(isValid(globalAjv, schema, { foo: "bar" })).to.be.true;
     });
 
     it("should return false if the data is not valid against the schema", () => {
@@ -27,13 +30,13 @@ describe("Validation", () => {
         },
       };
 
-      expect(isValid(schema, { foo: 12345 })).to.be.false;
+      expect(isValid(globalAjv, schema, { foo: 12345 })).to.be.false;
     });
 
     it("should return false if the schema is invalid", () => {
       const schema = "foobarbaz";
 
-      expect(isValid(schema, { foo: "bar" })).to.be.false;
+      expect(isValid(globalAjv, schema, { foo: "bar" })).to.be.false;
     });
   });
 
@@ -52,6 +55,7 @@ describe("Validation", () => {
 
       beforeEach(() => {
         const result = validateFormData(
+          globalAjv,
           { foo: 42, [illFormedKey]: 41 },
           schema
         );
@@ -89,7 +93,7 @@ describe("Validation", () => {
       let errors;
 
       beforeEach(() => {
-        const result = validateFormData({ price: 0.14 }, schema);
+        const result = validateFormData(globalAjv, { price: 0.14 }, schema);
         errors = result.errors;
       });
 
@@ -120,6 +124,7 @@ describe("Validation", () => {
 
       it("should return a validation error about meta schema when meta schema is not defined", () => {
         const errors = validateFormData(
+          globalAjv,
           { datasetId: "some kind of text" },
           schema
         );
@@ -137,11 +142,11 @@ describe("Validation", () => {
       });
       it("should return a validation error about formData", () => {
         const errors = validateFormData(
+          getGlobalAjv({ additionalMetaSchemas: [metaSchemaDraft4] }),
           { datasetId: "some kind of text" },
           schema,
           null,
-          null,
-          [metaSchemaDraft4]
+          null
         );
         expect(errors.errors).to.have.lengthOf(1);
         expect(errors.errors[0].stack).to.equal(
@@ -150,11 +155,13 @@ describe("Validation", () => {
       });
       it("should return a validation error about formData, when used with multiple meta schemas", () => {
         const errors = validateFormData(
+          getGlobalAjv({
+            additionalMetaSchemas: [metaSchemaDraft4, metaSchemaDraft6],
+          }),
           { datasetId: "some kind of text" },
           schema,
           null,
-          null,
-          [metaSchemaDraft4, metaSchemaDraft6]
+          null
         );
         expect(errors.errors).to.have.lengthOf(1);
         expect(errors.errors[0].stack).to.equal(
@@ -175,7 +182,7 @@ describe("Validation", () => {
       };
 
       it("should return a validation error if unknown string format is used", () => {
-        const result = validateFormData({ phone: "800.555.2368" }, schema);
+        const result = validateFormData(globalAjv, { phone: "800.555.2368" }, schema);
         const errMessage =
           'unknown format "phone-us" is used in schema at path "#/properties/phone"';
 
@@ -187,12 +194,13 @@ describe("Validation", () => {
 
       it("should return a validation error about formData", () => {
         const result = validateFormData(
+          getGlobalAjv({
+            customFormats: { "phone-us": /\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{4}$/ },
+          }),
           { phone: "800.555.2368" },
           schema,
           null,
-          null,
-          null,
-          { "phone-us": /\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{4}$/ }
+          null
         );
 
         expect(result.errors).to.have.lengthOf(1);
@@ -203,6 +211,7 @@ describe("Validation", () => {
 
       it("prop updates with new custom formats are accepted", () => {
         const result = validateFormData(
+          getGlobalAjv({ customFormats: { "area-code": /\d{3}/ } }),
           { phone: "abc" },
           {
             type: "object",
@@ -214,9 +223,7 @@ describe("Validation", () => {
             },
           },
           null,
-          null,
-          null,
-          { "area-code": /\d{3}/ }
+          null
         );
 
         expect(result.errors).to.have.lengthOf(1);
@@ -246,7 +253,7 @@ describe("Validation", () => {
           return errors;
         };
         const formData = { pass1: "a", pass2: "b" };
-        const result = validateFormData(formData, schema, validate);
+        const result = validateFormData(globalAjv, formData, schema, validate);
         errors = result.errors;
         errorSchema = result.errorSchema;
       });
@@ -275,7 +282,7 @@ describe("Validation", () => {
         const formData = {
           dataUrlWithName: "data:text/plain;name=file1.txt;base64,x=",
         };
-        const result = validateFormData(formData, schema);
+        const result = validateFormData(globalAjv, formData, schema);
         expect(result.errors).to.have.length.of(0);
       });
 
@@ -283,7 +290,7 @@ describe("Validation", () => {
         const formData = {
           dataUrlWithoutName: "data:text/plain;base64,x=",
         };
-        const result = validateFormData(formData, schema);
+        const result = validateFormData(globalAjv, formData, schema);
         expect(result.errors).to.have.length.of(0);
       });
     });
@@ -330,6 +337,7 @@ describe("Validation", () => {
 
       beforeEach(() => {
         const result = validateFormData(
+          globalAjv,
           { foo: 42, [illFormedKey]: 41 },
           schema,
           undefined,
@@ -358,7 +366,7 @@ describe("Validation", () => {
       let errors, errorSchema;
 
       beforeEach(() => {
-        const result = validateFormData({ foo: 42 }, schema);
+        const result = validateFormData(globalAjv, { foo: 42 }, schema);
         errors = result.errors;
         errorSchema = result.errorSchema;
       });
