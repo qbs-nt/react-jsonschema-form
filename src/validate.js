@@ -242,7 +242,7 @@ export default function validateFormData(
   }
 
   if (typeof customValidate !== "function") {
-    return { errors, errorSchema };
+    return { formData, errors, errorSchema };
   }
 
   const errorHandler = customValidate(formData, createErrorHandler(formData));
@@ -254,6 +254,7 @@ export default function validateFormData(
   const newErrors = toErrorList(newErrorSchema);
 
   return {
+    formData,
     errors: newErrors,
     errorSchema: newErrorSchema,
   };

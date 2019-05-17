@@ -60,9 +60,10 @@ export default class Form extends Component {
     const retrievedSchema = retrieveSchema(schema, definitions, formData);
     const customFormats = props.customFormats;
     const additionalMetaSchemas = props.additionalMetaSchemas;
-    const { errors, errorSchema } = mustValidate
+    const { formData: updatedFormData, errors, errorSchema } = mustValidate
       ? this.validate(formData, schema, additionalMetaSchemas, customFormats)
       : {
+          formData,
           errors: state.errors || [],
           errorSchema: state.errorSchema || {},
         };
@@ -77,7 +78,7 @@ export default class Form extends Component {
       schema,
       uiSchema,
       idSchema,
-      formData,
+      formData: updatedFormData,
       edit,
       errors,
       errorSchema,
