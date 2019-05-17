@@ -2,7 +2,7 @@ import React from "react";
 import { expect } from "chai";
 import { Simulate } from "react-addons-test-utils";
 
-import { parseDateString, toDateString } from "../src/utils";
+import { parseDateString, toDateString, createAjvInstance } from "../src/utils";
 import { utcToLocal } from "../src/components/widgets/DateTimeWidget";
 import { createFormComponent, createSandbox } from "./test_utils";
 
@@ -1736,6 +1736,53 @@ describe("StringField", () => {
       };
       const { node } = createFormComponent({ schema, widgets, uiSchema });
       expect(node.querySelector("#label-")).to.not.be.null;
+    });
+
+    it("whitespace preserved in strings", () => {
+      const { comp, node } = createFormComponent({
+        schema: {
+          type: "string",
+        },
+      });
+      Simulate.change(node.querySelector("input"), {
+        target: { value: "     yo       " },
+      });
+      expect(comp.state.formData).eql("     yo       ");
+    });
+
+    it("Supported custom ajv, tested with ajv-keywords and 'trim' transform", () => {
+      const ajv = createAjvInstance();
+      // https://github.com/epoberezkin/ajv-keywords#transform
+      const ajvKeywords = require("ajv-keywords");
+      ajvKeywords(ajv, "transform");
+      // require("ajv-keywords")(ajv, ['transform']);
+
+      const schema = {
+        // Standalone strings cannot be transformed by ajv (see ajv-keywords docs for transform keyword),
+        // so we nest the string into an object
+        type: "object",
+        properties: {
+          text: {
+            type: "string",
+            transform: ["trim"],
+          },
+        },
+      };
+
+      const { comp, node } = createFormComponent({
+        ajv,
+        schema,
+        liveValidate: true,
+      });
+      // const values = { text: '   hi    ' };
+      // console.log('before', values);
+      // ajv.validate(schema, values);
+      // console.log('after', values);
+      Simulate.change(node.querySelector("input"), {
+        target: { value: "     yo       " },
+      });
+      console.log(comp.state.formData);
+      expect(comp.state.formData).eql({ text: "yo" });
     });
   });
 });

@@ -9,6 +9,8 @@ import { createFormComponent } from "./test_utils";
 import { getGlobalAjv } from "./test_utils";
 const globalAjv = getGlobalAjv();
 
+FIXME vielleicht besser hier die transform tests aus StringField_test.js?!
+
 describe("Validation", () => {
   describe("validate.isValid()", () => {
     it("should return true if the data is valid against the schema", () => {
