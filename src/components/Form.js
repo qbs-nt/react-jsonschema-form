@@ -93,9 +93,10 @@ export default class Form extends Component {
     const ajv = this.getAjv(props);
     const formData = getDefaultFormState(ajv, schema, props.formData, definitions);
     const retrievedSchema = retrieveSchema(ajv, schema, definitions, formData);
-    const { errors, errorSchema } = mustValidate
+    const { formData: updatedFormData, errors, errorSchema } = mustValidate
       ? this.validate(ajv, formData, schema)
       : {
+          formData,
           errors: state.errors || [],
           errorSchema: state.errorSchema || {},
         };
@@ -111,7 +112,7 @@ export default class Form extends Component {
       schema,
       uiSchema,
       idSchema,
-      formData,
+      formData: updatedFormData,
       edit,
       errors,
       errorSchema,

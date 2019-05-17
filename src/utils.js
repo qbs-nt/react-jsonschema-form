@@ -2,6 +2,7 @@ import React from "react";
 import Ajv from "ajv";
 import validateFormData from "./validate";
 import fill from "core-js/library/fn/array/fill";
+import _isEqualWith from "lodash.isequalwith"; // FIXME sebu test
 
 export const ADDITIONAL_PROPERTY_FLAG = "__additional_property";
 
@@ -643,7 +644,10 @@ function isArguments(object) {
   return Object.prototype.toString.call(object) === "[object Arguments]";
 }
 
+// FIXME sebu can be replaced by lodash isEqual?
 export function deepEquals(a, b, ca = [], cb = []) {
+  // return _isEqual(a,b);
+
   // Partially extracted from node-deeper and adapted to exclude comparison
   // checks for functions.
   // https://github.com/othiym23/node-deeper
@@ -720,9 +724,42 @@ export function deepEquals(a, b, ca = [], cb = []) {
   }
 }
 
+function _shouldRender_isEqual_customizer(value, other) {
+  return typeof value === "function" && typeof other === "function"
+    ? true
+    : undefined;
+}
+
+// FIXME Sebu: eliminieren, nur noch _isEqual ohne eigenen customizer. Die Ausnahme bei fnction vergleichen scheint mir ein quirk zu sein
 export function shouldRender(comp, nextProps, nextState) {
   const { props, state } = comp;
+
+  return (
+    !_isEqualWith(props, nextProps, _shouldRender_isEqual_customizer) ||
+    !_isEqualWith(state, nextState, _shouldRender_isEqual_customizer)
+  );
+
+  /*
+  const a = deepEquals(props, nextProps);
+  const b = deepEquals(state, nextState);
+  const c = _isEqual(props, nextProps);
+  const d = _isEqual(state, nextState, customizer);
+  const e = _isEqualWith(props, nextProps, customizer);
+  const f = _isEqualWith(state, nextState);
+  const disagree = a !== c || b !== d;
+
+  // FIXME sebu
+  if (disagree) {
+    console.log("shouldRender DISAGREEMENT", a, b, c, d, e, f, {
+      props,
+      nextProps,
+      state,
+      nextState,
+    });
+  }
+
   return !deepEquals(props, nextProps) || !deepEquals(state, nextState);
+  */
 }
 
 export function toIdSchema(

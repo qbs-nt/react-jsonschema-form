@@ -152,8 +152,8 @@ export default function validateFormData(
   }
 
   let errors = transformAjvErrors(ajv.errors);
-  // Clear errors to prevent persistent errors, see #1104
 
+  // Clear errors to prevent persistent errors, see #1104
   ajv.errors = null;
 
   const noProperMetaSchema =
@@ -194,7 +194,7 @@ export default function validateFormData(
   }
 
   if (typeof customValidate !== "function") {
-    return { errors, errorSchema };
+    return { formData, errors, errorSchema };
   }
 
   const errorHandler = customValidate(formData, createErrorHandler(formData));
@@ -206,6 +206,7 @@ export default function validateFormData(
   const newErrors = toErrorList(newErrorSchema);
 
   return {
+    formData,
     errors: newErrors,
     errorSchema: newErrorSchema,
   };

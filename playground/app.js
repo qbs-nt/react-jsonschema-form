@@ -322,6 +322,7 @@ class App extends Component {
     // initialize state with Simple data sample
     const { schema, uiSchema, formData, validate } = samples.Simple;
     this.state = {
+      ajv: undefined,
       form: false,
       schema,
       uiSchema,
@@ -357,9 +358,10 @@ class App extends Component {
   load = data => {
     // Reset the ArrayFieldTemplate whenever you load new data
     const { ArrayFieldTemplate, ObjectFieldTemplate } = data;
-    // uiSchema is missing on some examples. Provide a default to
-    // clear the field in all cases.
+    // uiSchema and ajv are missing on some examples. Provide defaults to
+    // explicitly clear those fields in state in those cases.
     const { uiSchema = {} } = data;
+    const { ajv = null } = data;
     // force resetting form component instance
     this.setState({ form: false }, _ =>
       this.setState({
@@ -368,6 +370,7 @@ class App extends Component {
         ArrayFieldTemplate,
         ObjectFieldTemplate,
         uiSchema,
+        ajv,
       })
     );
   };
@@ -388,24 +391,41 @@ class App extends Component {
 
   setLiveSettings = ({ formData }) => this.setState({ liveSettings: formData });
 
-  onFormDataChange = ({ formData }) =>
-    this.setState({ formData, shareURL: null });
+  setFormData = formData => this.setState({ formData, shareURL: null });
+
+  onFormDataChange = ({ formData }) => {
+    console.log("onFormDataChange", formData); // FIXME sebug
+    this.setFormData(formData);
+  };
+
+  onFormDataSubmit = ({ formData }, e) => {
+    console.log("submitted formData", formData);
+    console.log("submit event", e);
+    this.setFormData(formData);
+  };
 
   onShare = () => {
-    const { formData, schema, uiSchema } = this.state;
-    const {
-      location: { origin, pathname },
-    } = document;
     try {
+      const { ajv, formData, schema, uiSchema } = this.state;
+      if (ajv) {
+        throw new Error(
+          "Playground does not support sharing the example with custom ajv instance"
+        );
+      }
+      const {
+        location: { origin, pathname },
+      } = document;
       const hash = btoa(JSON.stringify({ formData, schema, uiSchema }));
       this.setState({ shareURL: `${origin}${pathname}#${hash}` });
     } catch (err) {
+      alert(err);
       this.setState({ shareURL: null });
     }
   };
 
   render() {
     const {
+      ajv,
       schema,
       uiSchema,
       formData,
@@ -468,6 +488,7 @@ class App extends Component {
         <div className="col-sm-5">
           {this.state.form && (
             <Form
+              ajv={ajv}
               ArrayFieldTemplate={ArrayFieldTemplate}
               ObjectFieldTemplate={ObjectFieldTemplate}
               liveValidate={liveSettings.validate}
@@ -476,10 +497,7 @@ class App extends Component {
               uiSchema={uiSchema}
               formData={formData}
               onChange={this.onFormDataChange}
-              onSubmit={({ formData }, e) => {
-                console.log("submitted formData", formData);
-                console.log("submit event", e);
-              }}
+              onSubmit={this.onFormDataSubmit}
               fields={{ geo: GeoPosition }}
               validate={validate}
               onBlur={(id, value) =>
@@ -490,6 +508,9 @@ class App extends Component {
               }
               transformErrors={transformErrors}
               onError={log("errors")}>
+              <div className="row">
+                {ajv ? "Custom Ajv Validator active" : "Default Ajv"}
+              </div>
               <div className="row">
                 <div className="col-sm-3">
                   <button className="btn btn-primary" type="submit">
