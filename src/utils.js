@@ -1,6 +1,7 @@
 import React from "react";
 import validateFormData from "./validate";
 import fill from "core-js/library/fn/array/fill";
+import _isEqualWith from "lodash.isequalwith";
 
 export const ADDITIONAL_PROPERTY_FLAG = "__additional_property";
 
@@ -654,6 +655,7 @@ function isArguments(object) {
   return Object.prototype.toString.call(object) === "[object Arguments]";
 }
 
+// FIXME shoud be replaced in future by lodash isEqual without customizations
 export function deepEquals(a, b, ca = [], cb = []) {
   // Partially extracted from node-deeper and adapted to exclude comparison
   // checks for functions.
@@ -731,9 +733,21 @@ export function deepEquals(a, b, ca = [], cb = []) {
   }
 }
 
+function _shouldRender_isEqual_customizer(value, other) {
+  return typeof value === "function" && typeof other === "function"
+    ? true
+    : undefined;
+}
+
+// TODO: should be replaced by lodash _isEqual() in the future, without the need for any customizer
+// (execption regarding functions seems to be related to quirky re-rendering logic in other places)
 export function shouldRender(comp, nextProps, nextState) {
   const { props, state } = comp;
-  return !deepEquals(props, nextProps) || !deepEquals(state, nextState);
+
+  return (
+    !_isEqualWith(props, nextProps, _shouldRender_isEqual_customizer) ||
+    !_isEqualWith(state, nextState, _shouldRender_isEqual_customizer)
+  );
 }
 
 export function toIdSchema(
