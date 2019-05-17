@@ -16,6 +16,7 @@ import files from "./files";
 import single from "./single";
 import customArray from "./customArray";
 import customObject from "./customObject";
+import customAjv from "./customAjv";
 import alternatives from "./alternatives";
 import propertyDependencies from "./propertyDependencies";
 import schemaDependencies from "./schemaDependencies";
@@ -40,6 +41,7 @@ export const samples = {
   Single: single,
   "Custom Array": customArray,
   "Custom Object": customObject,
+  "Custom Ajv": customAjv,
   Alternatives: alternatives,
   "Property dependencies": propertyDependencies,
   "Schema dependencies": schemaDependencies,

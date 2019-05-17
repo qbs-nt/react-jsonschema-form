@@ -6,6 +6,8 @@ import { Simulate } from "react-addons-test-utils";
 import validateFormData, { isValid, toErrorList } from "../src/validate";
 import { createFormComponent } from "./test_utils";
 
+// FIXME vielleicht besser hier die transform tests aus StringField_test.js?!
+
 describe("Validation", () => {
   describe("validate.isValid()", () => {
     it("should return true if the data is valid against the schema", () => {

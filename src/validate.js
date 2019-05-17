@@ -206,8 +206,8 @@ export default function validateFormData(
   }
 
   let errors = transformAjvErrors(ajv.errors);
-  // Clear errors to prevent persistent errors, see #1104
 
+  // Clear errors to prevent persistent errors, see #1104
   ajv.errors = null;
 
   const noProperMetaSchema =
