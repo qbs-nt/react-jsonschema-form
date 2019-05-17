@@ -255,7 +255,8 @@ function SchemaFieldRender(props) {
     props.readonly ||
       uiSchema["ui:readonly"] ||
       props.schema.readOnly ||
-      schema.readOnly
+      schema.readOnly ||
+      schema.const != undefined
   );
   const autofocus = Boolean(props.autofocus || uiSchema["ui:autofocus"]);
   if (Object.keys(schema).length === 0) {
