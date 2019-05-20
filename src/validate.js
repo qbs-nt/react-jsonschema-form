@@ -1,7 +1,7 @@
 import toPath from "lodash.topath";
 import Ajv from "ajv";
 let ajv = createAjvInstance();
-import { deepEquals } from "./utils";
+import { isEqualExceptFunctions } from "./utils";
 
 let formerCustomFormats = null;
 let formerMetaSchema = null;
@@ -172,8 +172,8 @@ export default function validateFormData(
   additionalMetaSchemas = [],
   customFormats = {}
 ) {
-  const newMetaSchemas = !deepEquals(formerMetaSchema, additionalMetaSchemas);
-  const newFormats = !deepEquals(formerCustomFormats, customFormats);
+  const newMetaSchemas = !isEqualExceptFunctions(formerMetaSchema, additionalMetaSchemas);
+  const newFormats = !isEqualExceptFunctions(formerCustomFormats, customFormats);
 
   if (newMetaSchemas || newFormats) {
     ajv = createAjvInstance();

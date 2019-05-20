@@ -13,7 +13,7 @@ import {
   mergeObjects,
   getUiOptions,
   isFilesArray,
-  deepEquals,
+  isEqualExceptFunctions,
   getSchemaType,
 } from "../../utils";
 import UnsupportedField from "./UnsupportedField";
@@ -402,7 +402,7 @@ class SchemaField extends React.Component {
   shouldComponentUpdate(nextProps, nextState) {
     // if schemas are equal idSchemas will be equal as well,
     // so it is not necessary to compare
-    return !deepEquals(
+    return !isEqualExceptFunctions(
       { ...this.props, idSchema: undefined },
       { ...nextProps, idSchema: undefined }
     );

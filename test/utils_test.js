@@ -4,7 +4,7 @@ import {
   asNumber,
   orderProperties,
   dataURItoBlob,
-  deepEquals,
+  isEqualExceptFunctions,
   getDefaultFormState,
   getSchemaType,
   isFilesArray,
@@ -1455,14 +1455,14 @@ describe("utils", () => {
     });
   });
 
-  describe("deepEquals()", () => {
-    // Note: deepEquals implementation being extracted from node-deeper, it's
+  describe("isEqualExceptFunctions()", () => {
+    // Note: isEqualExceptFunctions implementation uses lodash isEqualWith. Its
     // worthless to reproduce all the tests existing for it; so we focus on the
-    // behavioral differences we introduced.
+    // behavioral differences we implemented.
     it("should assume functions are always equivalent", () => {
-      expect(deepEquals(() => {}, () => {})).eql(true);
-      expect(deepEquals({ foo() {} }, { foo() {} })).eql(true);
-      expect(deepEquals({ foo: { bar() {} } }, { foo: { bar() {} } })).eql(
+      expect(isEqualExceptFunctions(() => {}, () => {})).eql(true);
+      expect(isEqualExceptFunctions({ foo() {} }, { foo() {} })).eql(true);
+      expect(isEqualExceptFunctions({ foo: { bar() {} } }, { foo: { bar() {} } })).eql(
         true
       );
     });

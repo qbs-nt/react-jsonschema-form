@@ -9,7 +9,7 @@ import {
   toIdSchema,
   setState,
   getDefaultRegistry,
-  deepEquals,
+  isEqualExceptFunctions,
 } from "../utils";
 import validateFormData, { toErrorList } from "../validate";
 
@@ -29,7 +29,7 @@ export default class Form extends Component {
     this.state = this.getStateFromProps(props);
     if (
       this.props.onChange &&
-      !deepEquals(this.state.formData, this.props.formData)
+      !isEqualExceptFunctions(this.state.formData, this.props.formData)
     ) {
       this.props.onChange(this.state);
     }
@@ -39,8 +39,8 @@ export default class Form extends Component {
   componentWillReceiveProps(nextProps) {
     const nextState = this.getStateFromProps(nextProps);
     if (
-      !deepEquals(nextState.formData, nextProps.formData) &&
-      !deepEquals(nextState.formData, this.state.formData) &&
+      !isEqualExceptFunctions(nextState.formData, nextProps.formData) &&
+      !isEqualExceptFunctions(nextState.formData, this.state.formData) &&
       this.props.onChange
     ) {
       this.props.onChange(nextState);
