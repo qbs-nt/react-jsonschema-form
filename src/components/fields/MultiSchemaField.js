@@ -4,7 +4,10 @@ import * as types from "../../types";
 import { getUiOptions, getWidget, guessType } from "../../utils";
 import { isValid } from "../../validate";
 
-class AnyOfField extends Component {
+import { FormContext } from "../Form";
+
+// Used as AnyOfField and OneOfField, see src/components/fields/index.js
+class MultiSchemaField extends Component {
   constructor(props) {
     super(props);
 
@@ -73,10 +76,10 @@ class AnyOfField extends Component {
         // been filled in yet, which will mean that the schema is not valid
         delete augmentedSchema.required;
 
-        if (isValid(augmentedSchema, formData)) {
+        if (isValid(this.props.injectedContext.ajv, augmentedSchema, formData)) {
           return i;
         }
-      } else if (isValid(options[i], formData)) {
+      } else if (isValid(this.props.injectedContext.ajv, options[i], formData)) {
         return i;
       }
     }
@@ -198,7 +201,7 @@ class AnyOfField extends Component {
   }
 }
 
-AnyOfField.defaultProps = {
+MultiSchemaField.defaultProps = {
   disabled: false,
   errorSchema: {},
   idSchema: {},
@@ -206,7 +209,7 @@ AnyOfField.defaultProps = {
 };
 
 if (process.env.NODE_ENV !== "production") {
-  AnyOfField.propTypes = {
+  MultiSchemaField.propTypes = {
     options: PropTypes.arrayOf(PropTypes.object).isRequired,
     baseType: PropTypes.string,
     uiSchema: PropTypes.object,
@@ -217,4 +220,16 @@ if (process.env.NODE_ENV !== "production") {
   };
 }
 
-export default AnyOfField;
+// WORKAROUND: wrapper as a workaround for missing static variable contextType.
+// The contextType feature is available starting with React 16.6.
+// mini-create-react-context does not polyfill/ponyfill this feature and we're not
+// aware of any other solutions backporting this. As soon as the peer dependency to
+// React has been bumped up to >= 16.6:
+// - declare contextType static variable: static contextType = FormContext;
+// - replace this.props.injectedContext with: this.context
+// - simplify default export statement back to: export default MultiSchemaField;
+export default props => (
+  <FormContext.Consumer>
+    {context => <MultiSchemaField injectedContext={context} {...props} />}
+  </FormContext.Consumer>
+);
