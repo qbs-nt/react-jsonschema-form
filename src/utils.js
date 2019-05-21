@@ -1,7 +1,3 @@
-TODO:
-- deepEquals() umbenennen in _isEqualExceptFunctions()
-- shouldRender() verwendet dann intern (wieder) _isEqualExceptFunctions() (früher: deepEquals)  
-
 import React from "react";
 import Ajv from "ajv";
 import validateFormData from "./validate";
@@ -663,106 +659,25 @@ function mergeSchemas(schema1, schema2) {
   return mergeObjects(schema1, schema2, true);
 }
 
-function isArguments(object) {
-  return Object.prototype.toString.call(object) === "[object Arguments]";
-}
-
-// TODO: replace custom code with call to isEqualWith taken vom shouldRender(), shouldRender could then use deepEquals() again
-// TODO: should be replaced by calls to lodash _isEqual() in the future, without the need for any customizer
-// (execption regarding functions seems to be related to quirky re-rendering logic in other places)
-// See also shouldRender()
-export function deepEquals(a, b, ca = [], cb = []) {
-  // Partially extracted from node-deeper and adapted to exclude comparison
-  // checks for functions.
-  // https://github.com/othiym23/node-deeper
-  if (a === b) {
-    return true;
-  } else if (typeof a === "function" || typeof b === "function") {
-    // Assume all functions are equivalent
-    // see https://github.com/mozilla-services/react-jsonschema-form/issues/255
-    return true;
-  } else if (typeof a !== "object" || typeof b !== "object") {
-    return false;
-  } else if (a === null || b === null) {
-    return false;
-  } else if (a instanceof Date && b instanceof Date) {
-    return a.getTime() === b.getTime();
-  } else if (a instanceof RegExp && b instanceof RegExp) {
-    return (
-      a.source === b.source &&
-      a.global === b.global &&
-      a.multiline === b.multiline &&
-      a.lastIndex === b.lastIndex &&
-      a.ignoreCase === b.ignoreCase
-    );
-  } else if (isArguments(a) || isArguments(b)) {
-    if (!(isArguments(a) && isArguments(b))) {
-      return false;
-    }
-    let slice = Array.prototype.slice;
-    return deepEquals(slice.call(a), slice.call(b), ca, cb);
-  } else {
-    if (a.constructor !== b.constructor) {
-      return false;
-    }
-
-    let ka = Object.keys(a);
-    let kb = Object.keys(b);
-    // don't bother with stack acrobatics if there's nothing there
-    if (ka.length === 0 && kb.length === 0) {
-      return true;
-    }
-    if (ka.length !== kb.length) {
-      return false;
-    }
-
-    let cal = ca.length;
-    while (cal--) {
-      if (ca[cal] === a) {
-        return cb[cal] === b;
-      }
-    }
-    ca.push(a);
-    cb.push(b);
-
-    ka.sort();
-    kb.sort();
-    for (var j = ka.length - 1; j >= 0; j--) {
-      if (ka[j] !== kb[j]) {
-        return false;
-      }
-    }
-
-    let key;
-    for (let k = ka.length - 1; k >= 0; k--) {
-      key = ka[k];
-      if (!deepEquals(a[key], b[key], ca, cb)) {
-        return false;
-      }
-    }
-
-    ca.pop();
-    cb.pop();
-
-    return true;
-  }
-}
-
-function _shouldRender_isEqual_customizer(value, other) {
+function _isEqualExceptFunctions_customizer(value, other) {
   return typeof value === "function" && typeof other === "function"
     ? true
     : undefined;
 }
 
-// TODO: should use calls to lodash _isEqual() in the future, without the need for any customizer
+// TODO: should be replaced by calls to lodash _isEqual() in the future, without the need for any customizer
 // (execption regarding functions seems to be related to quirky re-rendering logic in other places)
-// See also deepEquals()
+// See also shouldRender()
+export function isEqualExceptFunctions(a, b) {
+  return _isEqualWith(a, b, _isEqualExceptFunctions_customizer);
+}
+
 export function shouldRender(comp, nextProps, nextState) {
   const { props, state } = comp;
 
   return (
-    !_isEqualWith(props, nextProps, _shouldRender_isEqual_customizer) ||
-    !_isEqualWith(state, nextState, _shouldRender_isEqual_customizer)
+    !isEqualExceptFunctions(props, nextProps) ||
+    !isEqualExceptFunctions(state, nextState)
   );
 }
 
