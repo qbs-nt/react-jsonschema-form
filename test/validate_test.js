@@ -182,7 +182,11 @@ describe("Validation", () => {
       };
 
       it("should not return a validation error if unknown string format is used", () => {
-        const result = validateFormData(globalAjv, { phone: "800.555.2368" }, schema);
+        const result = validateFormData(
+          globalAjv,
+          { phone: "800.555.2368" },
+          schema
+        );
         expect(result.errors.length).eql(0);
       });
 

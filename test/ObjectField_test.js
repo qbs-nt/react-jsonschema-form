@@ -448,7 +448,11 @@ describe("ObjectField", () => {
 
       expect(comp.state.formData.nonschema).eql(1);
 
-      const result = validateFormData(globalAjv, comp.state.formData, comp.state.schema);
+      const result = validateFormData(
+        globalAjv,
+        comp.state.formData,
+        comp.state.schema
+      );
       expect(result.errors).eql([]);
     });
 
@@ -464,7 +468,11 @@ describe("ObjectField", () => {
 
       expect(comp.state.formData.nonschema).eql(1);
 
-      const result = validateFormData(globalAjv, comp.state.formData, comp.state.schema );
+      const result = validateFormData(
+        globalAjv,
+        comp.state.formData,
+        comp.state.schema
+      );
       expect(result.errors[0].name).eql("additionalProperties");
     });
 

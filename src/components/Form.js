@@ -91,7 +91,12 @@ export default class Form extends Component {
     const mustValidate = edit && !props.noValidate && liveValidate;
     const { definitions } = schema;
     const ajv = this.getAjv(props);
-    const formData = getDefaultFormState(ajv, schema, props.formData, definitions);
+    const formData = getDefaultFormState(
+      ajv,
+      schema,
+      props.formData,
+      definitions
+    );
     const retrievedSchema = retrieveSchema(ajv, schema, definitions, formData);
     const { errors, errorSchema } = mustValidate
       ? this.validate(ajv, formData, schema)
@@ -122,11 +127,7 @@ export default class Form extends Component {
     return shouldRender(this, nextProps, nextState);
   }
 
-  validate(
-    ajv,
-    formData,
-    schema = this.props.schema
-  ) {
+  validate(ajv, formData, schema = this.props.schema) {
     const { validate, transformErrors } = this.props;
     const { definitions } = this.getRegistry();
     const resolvedSchema = retrieveSchema(ajv, schema, definitions, formData);
@@ -161,7 +162,10 @@ export default class Form extends Component {
     const mustValidate = !this.props.noValidate && this.props.liveValidate;
     let state = { formData };
     if (mustValidate) {
-      const { errors, errorSchema } = this.validate(this.getAjv(this.props), formData);
+      const { errors, errorSchema } = this.validate(
+        this.getAjv(this.props),
+        formData
+      );
       state = { ...state, errors, errorSchema };
     } else if (!this.props.noValidate && newErrorSchema) {
       state = {
@@ -194,7 +198,10 @@ export default class Form extends Component {
     event.persist();
 
     if (!this.props.noValidate) {
-      const { errors, errorSchema } = this.validate(this.getAjv(this.props), this.state.formData);
+      const { errors, errorSchema } = this.validate(
+        this.getAjv(this.props),
+        this.state.formData
+      );
       if (Object.keys(errors).length > 0) {
         setState(this, { errors, errorSchema }, () => {
           if (this.props.onError) {
@@ -259,46 +266,46 @@ export default class Form extends Component {
 
     return (
       <FormContext.Provider value={this.getContext()}>
-      <form
-        className={className ? className : "rjsf"}
-        id={id}
-        name={name}
-        method={method}
-        target={target}
-        action={action}
-        autoComplete={autocomplete}
-        encType={enctype}
-        acceptCharset={acceptcharset}
-        noValidate={noHtml5Validate}
-        onSubmit={this.onSubmit}
-        ref={form => {
-          this.formElement = form;
-        }}>
-        {this.renderErrors()}
-        <_SchemaField
-          schema={schema}
-          uiSchema={uiSchema}
-          errorSchema={errorSchema}
-          idSchema={idSchema}
-          idPrefix={idPrefix}
-          formData={formData}
-          onChange={this.onChange}
-          onBlur={this.onBlur}
-          onFocus={this.onFocus}
-          registry={registry}
-          safeRenderCompletion={safeRenderCompletion}
-          disabled={disabled}
-        />
-        {children ? (
-          children
-        ) : (
-          <div>
-            <button type="submit" className="btn btn-info">
-              Submit
-            </button>
-          </div>
-        )}
-      </form>
+        <form
+          className={className ? className : "rjsf"}
+          id={id}
+          name={name}
+          method={method}
+          target={target}
+          action={action}
+          autoComplete={autocomplete}
+          encType={enctype}
+          acceptCharset={acceptcharset}
+          noValidate={noHtml5Validate}
+          onSubmit={this.onSubmit}
+          ref={form => {
+            this.formElement = form;
+          }}>
+          {this.renderErrors()}
+          <_SchemaField
+            schema={schema}
+            uiSchema={uiSchema}
+            errorSchema={errorSchema}
+            idSchema={idSchema}
+            idPrefix={idPrefix}
+            formData={formData}
+            onChange={this.onChange}
+            onBlur={this.onBlur}
+            onFocus={this.onFocus}
+            registry={registry}
+            safeRenderCompletion={safeRenderCompletion}
+            disabled={disabled}
+          />
+          {children ? (
+            children
+          ) : (
+            <div>
+              <button type="submit" className="btn btn-info">
+                Submit
+              </button>
+            </div>
+          )}
+        </form>
       </FormContext.Provider>
     );
   }

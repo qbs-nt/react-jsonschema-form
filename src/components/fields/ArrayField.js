@@ -227,7 +227,12 @@ class ArrayField extends Component {
     }
     this.props.onChange([
       ...formData,
-      getDefaultFormState(this._context.ajv, itemSchema,undefined, definitions),
+      getDefaultFormState(
+        this._context.ajv,
+        itemSchema,
+        undefined,
+        definitions
+      ),
     ]);
   };
 
@@ -386,11 +391,20 @@ class ArrayField extends Component {
     const title = schema.title === undefined ? name : schema.title;
     const { ArrayFieldTemplate, definitions, fields, formContext } = registry;
     const { TitleField, DescriptionField } = fields;
-    const itemsSchema = retrieveSchema(this._context.ajv, schema.items, definitions);
+    const itemsSchema = retrieveSchema(
+      this._context.ajv,
+      schema.items,
+      definitions
+    );
     const arrayProps = {
       canAdd: this.canAddItem(formData),
       items: formData.map((item, index) => {
-        const itemSchema = retrieveSchema(this._context.ajv, schema.items, definitions, item);
+        const itemSchema = retrieveSchema(
+          this._context.ajv,
+          schema.items,
+          definitions,
+          item
+        );
         const itemErrorSchema = errorSchema ? errorSchema[index] : undefined;
         const itemIdPrefix = idSchema.$id + "_" + index;
         const itemIdSchema = toIdSchema(
@@ -453,7 +467,12 @@ class ArrayField extends Component {
     } = this.props;
     const items = this.props.formData;
     const { widgets, definitions, formContext } = registry;
-    const itemsSchema = retrieveSchema(this._context.ajv, schema.items, definitions, formData);
+    const itemsSchema = retrieveSchema(
+      this._context.ajv,
+      schema.items,
+      definitions,
+      formData
+    );
     const enumOptions = optionsList(itemsSchema);
     const { widget = "select", ...options } = {
       ...getUiOptions(uiSchema),
@@ -545,7 +564,12 @@ class ArrayField extends Component {
       retrieveSchema(this._context.ajv, item, definitions, formData[index])
     );
     const additionalSchema = allowAdditionalItems(schema)
-      ? retrieveSchema(this._context.ajv, schema.additionalItems, definitions, formData)
+      ? retrieveSchema(
+          this._context.ajv,
+          schema.additionalItems,
+          definitions,
+          formData
+        )
       : null;
 
     if (!items || items.length < itemSchemas.length) {
@@ -564,7 +588,12 @@ class ArrayField extends Component {
       items: items.map((item, index) => {
         const additional = index >= itemSchemas.length;
         const itemSchema = additional
-          ? retrieveSchema(this._context.ajv, schema.additionalItems, definitions, item)
+          ? retrieveSchema(
+              this._context.ajv,
+              schema.additionalItems,
+              definitions,
+              item
+            )
           : itemSchemas[index];
         const itemIdPrefix = idSchema.$id + "_" + index;
         const itemIdSchema = toIdSchema(

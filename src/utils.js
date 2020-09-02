@@ -192,7 +192,12 @@ function computeDefaults(ajv, schema, parentDefaults, definitions = {}) {
               : schema.items;
             const fillerEntries = fill(
               new Array(schema.minItems - defaultsLength),
-              computeDefaults(ajv, fillerSchema, fillerSchema.defaults, definitions)
+              computeDefaults(
+                ajv,
+                fillerSchema,
+                fillerSchema.defaults,
+                definitions
+              )
             );
             // then fill up the rest with either the item default or empty, up to minItems
 
@@ -503,7 +508,12 @@ export function resolveSchema(ajv, schema, definitions = {}, formData = {}) {
   if (schema.hasOwnProperty("$ref")) {
     return resolveReference(ajv, schema, definitions, formData);
   } else if (schema.hasOwnProperty("dependencies")) {
-    const resolvedSchema = resolveDependencies(ajv, schema, definitions, formData);
+    const resolvedSchema = resolveDependencies(
+      ajv,
+      schema,
+      definitions,
+      formData
+    );
     return retrieveSchema(ajv, resolvedSchema, definitions, formData);
   } else {
     // No $ref or dependencies attribute found, returning the original schema.

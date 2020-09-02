@@ -230,177 +230,194 @@ function SchemaFieldRender(props) {
   return (
     <FormContext.Consumer>
       {context => {
-  const {
-    uiSchema,
-    formData,
-    errorSchema,
-    idPrefix,
-    name,
-    onKeyChange,
-    onDropPropertyClick,
-    required,
-    registry = getDefaultRegistry(),
-  } = props;
-  const {
-    definitions,
-    fields,
-    formContext,
-    FieldTemplate = DefaultTemplate,
-  } = registry;
-  let idSchema = props.idSchema;
-  const schema = retrieveSchema(context.ajv, props.schema, definitions, formData);
-  idSchema = mergeObjects(
-    toIdSchema(context.ajv, schema, null, definitions, formData, idPrefix),
-    idSchema
-  );
-  const FieldComponent = getFieldComponent(schema, uiSchema, idSchema, fields);
-  const { DescriptionField } = fields;
-  const disabled = Boolean(props.disabled || uiSchema["ui:disabled"]);
-  const readonly = Boolean(
-    props.readonly ||
-      uiSchema["ui:readonly"] ||
-      props.schema.readOnly ||
-      schema.readOnly
-  );
-  const autofocus = Boolean(props.autofocus || uiSchema["ui:autofocus"]);
-  if (Object.keys(schema).length === 0) {
-    return null;
-  }
+        const {
+          uiSchema,
+          formData,
+          errorSchema,
+          idPrefix,
+          name,
+          onKeyChange,
+          onDropPropertyClick,
+          required,
+          registry = getDefaultRegistry(),
+        } = props;
+        const {
+          definitions,
+          fields,
+          formContext,
+          FieldTemplate = DefaultTemplate,
+        } = registry;
+        let idSchema = props.idSchema;
+        const schema = retrieveSchema(
+          context.ajv,
+          props.schema,
+          definitions,
+          formData
+        );
+        idSchema = mergeObjects(
+          toIdSchema(
+            context.ajv,
+            schema,
+            null,
+            definitions,
+            formData,
+            idPrefix
+          ),
+          idSchema
+        );
+        const FieldComponent = getFieldComponent(
+          schema,
+          uiSchema,
+          idSchema,
+          fields
+        );
+        const { DescriptionField } = fields;
+        const disabled = Boolean(props.disabled || uiSchema["ui:disabled"]);
+        const readonly = Boolean(
+          props.readonly ||
+            uiSchema["ui:readonly"] ||
+            props.schema.readOnly ||
+            schema.readOnly
+        );
+        const autofocus = Boolean(props.autofocus || uiSchema["ui:autofocus"]);
+        if (Object.keys(schema).length === 0) {
+          return null;
+        }
 
-  const uiOptions = getUiOptions(uiSchema);
-  let { label: displayLabel = true } = uiOptions;
-  if (schema.type === "array") {
-    displayLabel =
-      isMultiSelect(context.ajv, schema, definitions) ||
-      isFilesArray(context.ajv, schema, uiSchema, definitions);
-  }
-  if (schema.type === "object") {
-    displayLabel = false;
-  }
-  if (schema.type === "boolean" && !uiSchema["ui:widget"]) {
-    displayLabel = false;
-  }
-  if (uiSchema["ui:field"]) {
-    displayLabel = false;
-  }
+        const uiOptions = getUiOptions(uiSchema);
+        let { label: displayLabel = true } = uiOptions;
+        if (schema.type === "array") {
+          displayLabel =
+            isMultiSelect(context.ajv, schema, definitions) ||
+            isFilesArray(context.ajv, schema, uiSchema, definitions);
+        }
+        if (schema.type === "object") {
+          displayLabel = false;
+        }
+        if (schema.type === "boolean" && !uiSchema["ui:widget"]) {
+          displayLabel = false;
+        }
+        if (uiSchema["ui:field"]) {
+          displayLabel = false;
+        }
 
-  const { __errors, ...fieldErrorSchema } = errorSchema;
+        const { __errors, ...fieldErrorSchema } = errorSchema;
 
-  // See #439: uiSchema: Don't pass consumed class names to child components
-  const field = (
-    <FieldComponent
-      {...props}
-      idSchema={idSchema}
-      schema={schema}
-      uiSchema={{ ...uiSchema, classNames: undefined }}
-      disabled={disabled}
-      readonly={readonly}
-      autofocus={autofocus}
-      errorSchema={fieldErrorSchema}
-      formContext={formContext}
-      rawErrors={__errors}
-    />
-  );
+        // See #439: uiSchema: Don't pass consumed class names to child components
+        const field = (
+          <FieldComponent
+            {...props}
+            idSchema={idSchema}
+            schema={schema}
+            uiSchema={{ ...uiSchema, classNames: undefined }}
+            disabled={disabled}
+            readonly={readonly}
+            autofocus={autofocus}
+            errorSchema={fieldErrorSchema}
+            formContext={formContext}
+            rawErrors={__errors}
+          />
+        );
 
-  const { type } = schema;
-  const id = idSchema.$id;
-  const label =
-    uiSchema["ui:title"] || props.schema.title || schema.title || name;
-  const description =
-    uiSchema["ui:description"] ||
-    props.schema.description ||
-    schema.description;
-  const errors = __errors;
-  const help = uiSchema["ui:help"];
-  const hidden = uiSchema["ui:widget"] === "hidden";
-  const classNames = [
-    "form-group",
-    "field",
-    `field-${type}`,
-    errors && errors.length > 0 ? "field-error has-error has-danger" : "",
-    uiSchema.classNames,
-  ]
-    .join(" ")
-    .trim();
+        const { type } = schema;
+        const id = idSchema.$id;
+        const label =
+          uiSchema["ui:title"] || props.schema.title || schema.title || name;
+        const description =
+          uiSchema["ui:description"] ||
+          props.schema.description ||
+          schema.description;
+        const errors = __errors;
+        const help = uiSchema["ui:help"];
+        const hidden = uiSchema["ui:widget"] === "hidden";
+        const classNames = [
+          "form-group",
+          "field",
+          `field-${type}`,
+          errors && errors.length > 0 ? "field-error has-error has-danger" : "",
+          uiSchema.classNames,
+        ]
+          .join(" ")
+          .trim();
 
-  const fieldProps = {
-    description: (
-      <DescriptionField
-        id={id + "__description"}
-        description={description}
-        formContext={formContext}
-      />
-    ),
-    rawDescription: description,
-    help: <Help help={help} />,
-    rawHelp: typeof help === "string" ? help : undefined,
-    errors: <ErrorList errors={errors} />,
-    rawErrors: errors,
-    id,
-    label,
-    hidden,
-    onKeyChange,
-    onDropPropertyClick,
-    required,
-    disabled,
-    readonly,
-    displayLabel,
-    classNames,
-    formContext,
-    fields,
-    schema,
-    uiSchema,
-  };
+        const fieldProps = {
+          description: (
+            <DescriptionField
+              id={id + "__description"}
+              description={description}
+              formContext={formContext}
+            />
+          ),
+          rawDescription: description,
+          help: <Help help={help} />,
+          rawHelp: typeof help === "string" ? help : undefined,
+          errors: <ErrorList errors={errors} />,
+          rawErrors: errors,
+          id,
+          label,
+          hidden,
+          onKeyChange,
+          onDropPropertyClick,
+          required,
+          disabled,
+          readonly,
+          displayLabel,
+          classNames,
+          formContext,
+          fields,
+          schema,
+          uiSchema,
+        };
 
-  const _AnyOfField = registry.fields.AnyOfField;
-  const _OneOfField = registry.fields.OneOfField;
+        const _AnyOfField = registry.fields.AnyOfField;
+        const _OneOfField = registry.fields.OneOfField;
 
-  return (
-    <FieldTemplate {...fieldProps}>
-      {field}
+        return (
+          <FieldTemplate {...fieldProps}>
+            {field}
 
-      {/*
+            {/*
         If the schema `anyOf` or 'oneOf' can be rendered as a select control, don't
         render the selection and let `StringField` component handle
         rendering
       */}
-      {schema.anyOf && !isSelect(context.ajv, schema) && (
-        <_AnyOfField
-          disabled={disabled}
-          errorSchema={errorSchema}
-          formData={formData}
-          idPrefix={idPrefix}
-          idSchema={idSchema}
-          onBlur={props.onBlur}
-          onChange={props.onChange}
-          onFocus={props.onFocus}
-          options={schema.anyOf}
-          baseType={schema.type}
-          registry={registry}
-          safeRenderCompletion={props.safeRenderCompletion}
-          uiSchema={uiSchema}
-        />
-      )}
+            {schema.anyOf && !isSelect(context.ajv, schema) && (
+              <_AnyOfField
+                disabled={disabled}
+                errorSchema={errorSchema}
+                formData={formData}
+                idPrefix={idPrefix}
+                idSchema={idSchema}
+                onBlur={props.onBlur}
+                onChange={props.onChange}
+                onFocus={props.onFocus}
+                options={schema.anyOf}
+                baseType={schema.type}
+                registry={registry}
+                safeRenderCompletion={props.safeRenderCompletion}
+                uiSchema={uiSchema}
+              />
+            )}
 
-      {schema.oneOf && !isSelect(context.ajv, schema) && (
-        <_OneOfField
-          disabled={disabled}
-          errorSchema={errorSchema}
-          formData={formData}
-          idPrefix={idPrefix}
-          idSchema={idSchema}
-          onBlur={props.onBlur}
-          onChange={props.onChange}
-          onFocus={props.onFocus}
-          options={schema.oneOf}
-          baseType={schema.type}
-          registry={registry}
-          safeRenderCompletion={props.safeRenderCompletion}
-          uiSchema={uiSchema}
-        />
-      )}
-    </FieldTemplate>
-  );
+            {schema.oneOf && !isSelect(context.ajv, schema) && (
+              <_OneOfField
+                disabled={disabled}
+                errorSchema={errorSchema}
+                formData={formData}
+                idPrefix={idPrefix}
+                idSchema={idSchema}
+                onBlur={props.onBlur}
+                onChange={props.onChange}
+                onFocus={props.onFocus}
+                options={schema.oneOf}
+                baseType={schema.type}
+                registry={registry}
+                safeRenderCompletion={props.safeRenderCompletion}
+                uiSchema={uiSchema}
+              />
+            )}
+          </FieldTemplate>
+        );
       }}
     </FormContext.Consumer>
   );
