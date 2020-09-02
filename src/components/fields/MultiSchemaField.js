@@ -13,6 +13,8 @@ import { isValid } from "../../validate";
 
 import { FormContext } from "../Form";
 
+const debug = false;
+
 // Used as AnyOfField and OneOfField, see src/components/fields/index.js
 class MultiSchemaField extends Component {
   constructor(props) {
@@ -23,7 +25,10 @@ class MultiSchemaField extends Component {
     this.state = {
       selectedOption: this.getMatchingOption(formData, options),
     };
-    console.log("MultiSchemaField: constructor state", this.state);
+
+    if (debug) {
+      console.log("MultiSchemaField: constructor state", this.state);
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -32,21 +37,28 @@ class MultiSchemaField extends Component {
       nextProps.options,
       this.state.selectedOption
     );
-    console.log("MultiSchemaField: matching option", matchingOption, {
-      nextProps,
-      "this.state.selectedOption": this.state.selectedOption,
-    });
+    if (debug) {
+      console.log("MultiSchemaField: matching option", matchingOption, {
+        nextProps,
+        "this.state.selectedOption": this.state.selectedOption,
+      });
+    }
 
     if (matchingOption === this.state.selectedOption) {
-      console.log(
-        "MultiSchemaField: matching option unchanged, not setting state"
-      );
+      if (debug) {
+        console.log(
+          "MultiSchemaField: matching option unchanged, not setting state"
+        );
+      }
       return;
     }
 
-    console.log(
-      "MultiSchemaField: matching option changed, updating selectedOption in state"
-    );
+    if (debug) {
+      console.log(
+        "MultiSchemaField: matching option changed, updating selectedOption in state"
+      );
+    }
+
     this.setState({ selectedOption: matchingOption });
   }
 
@@ -60,14 +72,16 @@ class MultiSchemaField extends Component {
 
     if (!option.properties) {
       const result = isValid(this.props.injectedContext.ajv, option, formData);
-      console.log(
-        "MultiSchemaField.checkMatchingOption without properties (therefore no object type)",
-        {
-          formData,
-          option,
-          result,
-        }
-      );
+      if (debug) {
+        console.log(
+          "MultiSchemaField.checkMatchingOption without properties (therefore no object type)",
+          {
+            formData,
+            option,
+            result,
+          }
+        );
+      }
       return result;
     }
 
@@ -120,20 +134,25 @@ class MultiSchemaField extends Component {
       augmentedSchema,
       formData
     );
-    console.log("MultiSchemaField.checkMatchingOption() with properties", {
-      formData,
-      augmentedSchema,
-      result,
-    });
+    if (debug) {
+      console.log("MultiSchemaField.checkMatchingOption() with properties", {
+        formData,
+        augmentedSchema,
+        result,
+      });
+    }
     return result;
   }
 
   getMatchingOption = (formData, options, preferredOption) => {
-    console.group("MultiSchemaField.getMatchingOption()", {
-      formData,
-      options,
-      preferredOption,
-    });
+    if (debug) {
+      console.group("MultiSchemaField.getMatchingOption()", {
+        formData,
+        options,
+        preferredOption,
+      });
+    }
+
     // Check an preferred option first
     if (preferredOption != undefined) {
       if (
@@ -142,11 +161,13 @@ class MultiSchemaField extends Component {
         preferredOption < options.length
       ) {
         if (this.checkMatchingOption(formData, options[preferredOption])) {
-          console.log(
-            "MultiSchemaField.getMatchingOption() result: preferred option",
-            preferredOption
-          );
-          console.groupEnd();
+          if (debug) {
+            console.log(
+              "MultiSchemaField.getMatchingOption() result: preferred option",
+              preferredOption
+            );
+            console.groupEnd();
+          }
           return preferredOption;
         }
       } else {
@@ -161,8 +182,10 @@ class MultiSchemaField extends Component {
         continue;
       }
       if (this.checkMatchingOption(formData, options[i])) {
-        console.log("MultiSchemaField.getMatchingOption() result: index", i);
-        console.groupEnd();
+        if (debug) {
+          console.log("MultiSchemaField.getMatchingOption() result: index", i);
+          console.groupEnd();
+        }
         return i;
       }
     }
@@ -171,11 +194,13 @@ class MultiSchemaField extends Component {
     // selected) option, assuming it's available; otherwise use the first option,
     // assuming there's at least one option available
     const result = preferredOption != undefined ? preferredOption : 0;
-    console.log(
-      "MultiSchemaField.getMatchingOption() result: not found, return preferredOption or 0",
-      { result, preferredOption }
-    );
-    console.groupEnd();
+    if (debug) {
+      console.log(
+        "MultiSchemaField.getMatchingOption() result: not found, return preferredOption or 0",
+        { result, preferredOption }
+      );
+      console.groupEnd();
+    }
     return result;
   };
 
@@ -202,22 +227,24 @@ class MultiSchemaField extends Component {
       (newOption.type === "object" || newOption.properties)
     ) {
       const { definitions } = registry;
-      console.log(
-        "MultiSchemaField onOptionChange getDefaultFormState test",
-        getDefaultFormState(
-          this.props.injectedContext.ajv,
-          { type: "object", ...newOption },
-          formData,
-          definitions
-        ),
-        getDefaultFormState(
-          this.props.injectedContext.ajv,
-          { type: "object", ...newOption },
-          undefined,
-          definitions
-        ),
-        { newOption, formData, definitions }
-      );
+      if (debug) {
+        console.log(
+          "MultiSchemaField onOptionChange getDefaultFormState test",
+          getDefaultFormState(
+            this.props.injectedContext.ajv,
+            { type: "object", ...newOption },
+            formData,
+            definitions
+          ),
+          getDefaultFormState(
+            this.props.injectedContext.ajv,
+            { type: "object", ...newOption },
+            undefined,
+            definitions
+          ),
+          { newOption, formData, definitions }
+        );
+      }
 
       // const newFormData = Object.assign({}, formData);
       const newFormData = getDefaultFormState(
