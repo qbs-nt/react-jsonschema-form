@@ -1,7 +1,14 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import * as types from "../../types";
-import { getUiOptions, getWidget, guessType } from "../../utils";
+import {
+  getUiOptions,
+  getWidget,
+  guessType,
+  getDefaultRegistry,
+  getDefaultFormState,
+  retrieveSchema,
+} from "../../utils";
 import { isValid } from "../../validate";
 
 import { FormContext } from "../Form";
@@ -16,83 +23,177 @@ class MultiSchemaField extends Component {
     this.state = {
       selectedOption: this.getMatchingOption(formData, options),
     };
+    console.log("MultiSchemaField: constructor state", this.state);
   }
 
   componentWillReceiveProps(nextProps) {
     const matchingOption = this.getMatchingOption(
       nextProps.formData,
-      nextProps.options
+      nextProps.options,
+      this.state.selectedOption
     );
+    console.log("MultiSchemaField: matching option", matchingOption, {
+      nextProps,
+      "this.state.selectedOption": this.state.selectedOption,
+    });
 
     if (matchingOption === this.state.selectedOption) {
+      console.log(
+        "MultiSchemaField: matching option unchanged, not setting state"
+      );
       return;
     }
 
+    console.log(
+      "MultiSchemaField: matching option changed, updating selectedOption in state"
+    );
     this.setState({ selectedOption: matchingOption });
   }
 
-  getMatchingOption(formData, options) {
+  checkMatchingOption(formData, option) {
+    // Assign the definitions to the option, otherwise the match can fail if
+    // the new option uses a $ref
+    option = {
+      definitions: this.props.registry.definitions,
+      ...option,
+    };
+
+    if (!option.properties) {
+      const result = isValid(this.props.injectedContext.ajv, option, formData);
+      console.log(
+        "MultiSchemaField.checkMatchingOption without properties (therefore no object type)",
+        {
+          formData,
+          option,
+          result,
+        }
+      );
+      return result;
+    }
+
+    // Force type to object if not set
+    // option = { type: 'object', ...option };
+
+    // The schema describes an object, so we need to add slightly more
+    // strict matching to the schema, because unless the schema uses the
+    // "requires" keyword, an object will match the schema as long as it
+    // doesn't have matching keys with a conflicting type. To do this we use an
+    // "anyOf" with an array of requires. This augmentation expresses that the
+    // schema should match if any of the keys in the schema are present on the
+    // object and pass validation.
+
+    // Create an "anyOf" schema that requires at least one of the keys in the
+    // "properties" object
+    const requiresAnyOf = {
+      anyOf: Object.keys(option.properties).map(key => ({
+        required: [key],
+      })),
+    };
+
+    let augmentedSchema;
+
+    // If the "anyOf" keyword already exists, wrap the augmentation in an "allOf"
+    if (option.anyOf) {
+      // Create a shallow clone of the option
+      const { ...shallowClone } = option;
+
+      if (!shallowClone.allOf) {
+        shallowClone.allOf = [];
+      } else {
+        // If "allOf" already exists, shallow clone the array
+        shallowClone.allOf = shallowClone.allOf.slice();
+      }
+
+      shallowClone.allOf.push(requiresAnyOf);
+
+      augmentedSchema = shallowClone;
+    } else {
+      augmentedSchema = Object.assign({}, option, requiresAnyOf);
+    }
+
+    // Remove the "required" field as it's likely that not all fields have
+    // been filled in yet, which will mean that the schema is not valid
+    delete augmentedSchema.required;
+
+    const result = isValid(
+      this.props.injectedContext.ajv,
+      augmentedSchema,
+      formData
+    );
+    console.log("MultiSchemaField.checkMatchingOption() with properties", {
+      formData,
+      augmentedSchema,
+      result,
+    });
+    return result;
+  }
+
+  getMatchingOption = (formData, options, preferredOption) => {
+    console.group("MultiSchemaField.getMatchingOption()", {
+      formData,
+      options,
+      preferredOption,
+    });
+    // Check an preferred option first
+    if (preferredOption != undefined) {
+      if (
+        options.length > 0 &&
+        preferredOption >= 0 &&
+        preferredOption < options.length
+      ) {
+        if (this.checkMatchingOption(formData, options[preferredOption])) {
+          console.log(
+            "MultiSchemaField.getMatchingOption() result: preferred option",
+            preferredOption
+          );
+          console.groupEnd();
+          return preferredOption;
+        }
+      } else {
+        // Explicitly set to undefined to handle index being out of bounds
+        preferredOption = undefined;
+      }
+    }
+
     for (let i = 0; i < options.length; i++) {
-      const option = options[i];
-
-      // If the schema describes an object then we need to add slightly more
-      // strict matching to the schema, because unless the schema uses the
-      // "requires" keyword, an object will match the schema as long as it
-      // doesn't have matching keys with a conflicting type. To do this we use an
-      // "anyOf" with an array of requires. This augmentation expresses that the
-      // schema should match if any of the keys in the schema are present on the
-      // object and pass validation.
-      if (option.properties) {
-        // Create an "anyOf" schema that requires at least one of the keys in the
-        // "properties" object
-        const requiresAnyOf = {
-          anyOf: Object.keys(option.properties).map(key => ({
-            required: [key],
-          })),
-        };
-
-        let augmentedSchema;
-
-        // If the "anyOf" keyword already exists, wrap the augmentation in an "allOf"
-        if (option.anyOf) {
-          // Create a shallow clone of the option
-          const { ...shallowClone } = option;
-
-          if (!shallowClone.allOf) {
-            shallowClone.allOf = [];
-          } else {
-            // If "allOf" already exists, shallow clone the array
-            shallowClone.allOf = shallowClone.allOf.slice();
-          }
-
-          shallowClone.allOf.push(requiresAnyOf);
-
-          augmentedSchema = shallowClone;
-        } else {
-          augmentedSchema = Object.assign({}, option, requiresAnyOf);
-        }
-
-        // Remove the "required" field as it's likely that not all fields have
-        // been filled in yet, which will mean that the schema is not valid
-        delete augmentedSchema.required;
-
-        if (isValid(this.props.injectedContext.ajv, augmentedSchema, formData)) {
-          return i;
-        }
-      } else if (isValid(this.props.injectedContext.ajv, options[i], formData)) {
+      // Skip already-checked preferred option (if any)
+      if (preferredOption === i) {
+        continue;
+      }
+      if (this.checkMatchingOption(formData, options[i])) {
+        console.log("MultiSchemaField.getMatchingOption() result: index", i);
+        console.groupEnd();
         return i;
       }
     }
 
-    // If the form data matches none of the options, use the first option
-    return 0;
-  }
+    // If the form data matches none of the options, use the preferred (= currently
+    // selected) option, assuming it's available; otherwise use the first option,
+    // assuming there's at least one option available
+    const result = preferredOption != undefined ? preferredOption : 0;
+    console.log(
+      "MultiSchemaField.getMatchingOption() result: not found, return preferredOption or 0",
+      { result, preferredOption }
+    );
+    console.groupEnd();
+    return result;
+  };
 
   onOptionChange = option => {
-    const selectedOption = parseInt(option, 10);
-    const { formData, onChange, options } = this.props;
+    const {
+      formData,
+      onChange,
+      options,
+      registry = getDefaultRegistry(),
+    } = this.props;
 
-    const newOption = options[selectedOption];
+    const selectedOption = parseInt(option, 10);
+
+    const newOption = retrieveSchema(
+      options[selectedOption],
+      registry.definitions,
+      formData
+    );
 
     // If the new option is of type object and the current data is an object,
     // discard properties added using the old option.
@@ -100,7 +201,31 @@ class MultiSchemaField extends Component {
       guessType(formData) === "object" &&
       (newOption.type === "object" || newOption.properties)
     ) {
-      const newFormData = Object.assign({}, formData);
+      const { definitions } = registry;
+      console.log(
+        "MultiSchemaField onOptionChange getDefaultFormState test",
+        getDefaultFormState(
+          this.props.injectedContext.ajv,
+          { type: "object", ...newOption },
+          formData,
+          definitions
+        ),
+        getDefaultFormState(
+          this.props.injectedContext.ajv,
+          { type: "object", ...newOption },
+          undefined,
+          definitions
+        ),
+        { newOption, formData, definitions }
+      );
+
+      // const newFormData = Object.assign({}, formData);
+      const newFormData = getDefaultFormState(
+        this.props.injectedContext.ajv,
+        { type: "object", ...newOption },
+        formData,
+        definitions
+      );
 
       const optionsToDiscard = options.slice();
       optionsToDiscard.splice(selectedOption, 1);
