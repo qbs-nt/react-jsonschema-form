@@ -16,7 +16,7 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // TypeScript Version: 3.5
 
-declare module 'react-jsonschema-form' {
+declare module '@qbs-nt/react-jsonschema-form' {
     import * as React from 'react';
     import { JSONSchema6, JSONSchema6Type } from 'json-schema';
     import { ErrorParameters as AjvErrorParameters } from 'ajv';
@@ -372,7 +372,7 @@ declare module 'react-jsonschema-form' {
     };
 }
 
-declare module 'react-jsonschema-form/lib/components/fields/SchemaField' {
+declare module '@qbs-nt/react-jsonschema-form/lib/components/fields/SchemaField' {
     import { JSONSchema6 } from 'json-schema';
     import { FieldProps, UiSchema, IdSchema, FormValidation } from 'react-jsonschema-form';
 
@@ -384,7 +384,7 @@ declare module 'react-jsonschema-form/lib/components/fields/SchemaField' {
     export default class SchemaField extends React.Component<SchemaFieldProps> {}
 }
 
-declare module 'react-jsonschema-form/lib/utils' {
+declare module '@qbs-nt/react-jsonschema-form/lib/utils' {
     import { JSONSchema6, JSONSchema6Definition, JSONSchema6Type, JSONSchema6TypeName } from 'json-schema';
     import { FieldProps, UiSchema, IdSchema, PathSchema, Widget } from 'react-jsonschema-form';
 
@@ -524,7 +524,7 @@ declare module 'react-jsonschema-form/lib/utils' {
     ): number;
 }
 
-declare module 'react-jsonschema-form/lib/validate' {
+declare module '@qbs-nt/react-jsonschema-form/lib/validate' {
     import { JSONSchema6Definition } from 'json-schema';
     // import { ValidationError } from 'react-jsonschema-form';
     import { ValidationError, ErrorSchema, FormProps } from 'react-jsonschema-form';
@@ -540,7 +540,7 @@ declare module 'react-jsonschema-form/lib/validate' {
     ): { errors: ValidationError[]; errorSchema: ErrorSchema };
 }
 
-declare module 'react-jsonschema-form/lib/components/AddButton' {
+declare module '@qbs-nt/react-jsonschema-form/lib/components/AddButton' {
     import * as React from 'react';
     import { JSONSchema6 } from 'json-schema';
 
