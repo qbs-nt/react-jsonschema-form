@@ -1,6 +1,6 @@
 {
   "name": "@qbs-nt/react-jsonschema-form",
-  "version": "1.5.0-qbsnt.14",
+  "version": "1.5.0-qbsnt.15",
   "description": "A simple React component capable of building HTML forms out of a JSON schema.",
   "scripts": {
     "build:lib": "rimraf lib && cross-env NODE_ENV=production babel -d lib/ src/",
@@ -32,7 +32,8 @@
   "main": "lib/index.js",
   "files": [
     "dist",
-    "lib"
+    "lib",
+    "types"
   ],
   "engineStrict": false,
   "engines": {
@@ -119,5 +120,6 @@
     "json-schema"
   ],
   "license": "Apache-2.0",
-  "homepage": "https://github.com/mozilla-services/react-jsonschema-form#readme"
+  "homepage": "https://github.com/mozilla-services/react-jsonschema-form#readme",
+  "types": "types/index.d.ts"
 }
