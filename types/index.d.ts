@@ -374,7 +374,7 @@ declare module '@qbs-nt/react-jsonschema-form' {
 
 declare module '@qbs-nt/react-jsonschema-form/lib/components/fields/SchemaField' {
     import { JSONSchema6 } from 'json-schema';
-    import { FieldProps, UiSchema, IdSchema, FormValidation } from 'react-jsonschema-form';
+    import { FieldProps, UiSchema, IdSchema, FormValidation } from '@qbs-nt/react-jsonschema-form';
 
     export type SchemaFieldProps<T = any> = Pick<
         FieldProps<T>,
@@ -386,7 +386,7 @@ declare module '@qbs-nt/react-jsonschema-form/lib/components/fields/SchemaField'
 
 declare module '@qbs-nt/react-jsonschema-form/lib/utils' {
     import { JSONSchema6, JSONSchema6Definition, JSONSchema6Type, JSONSchema6TypeName } from 'json-schema';
-    import { FieldProps, UiSchema, IdSchema, PathSchema, Widget } from 'react-jsonschema-form';
+    import { FieldProps, UiSchema, IdSchema, PathSchema, Widget } from '@qbs-nt/react-jsonschema-form';
 
     export const ADDITIONAL_PROPERTY_FLAG: string;
 
@@ -526,8 +526,8 @@ declare module '@qbs-nt/react-jsonschema-form/lib/utils' {
 
 declare module '@qbs-nt/react-jsonschema-form/lib/validate' {
     import { JSONSchema6Definition } from 'json-schema';
-    // import { ValidationError } from 'react-jsonschema-form';
-    import { ValidationError, ErrorSchema, FormProps } from 'react-jsonschema-form';
+    // import { ValidationError } from '@qbs-nt/react-jsonschema-form';
+    import { ValidationError, ErrorSchema, FormProps } from '@qbs-nt/react-jsonschema-form';
 
     export default function validateFormData<T = any>(
         formData: T,
